@@ -1,0 +1,56 @@
+.map__image{
+/*	height: 100px;*/
+	width: 65%;
+/*	border: 1px solid black;*/
+}
+/*height="209.973mm" */
+
+.map__image path{
+ 	fill: #035866a3;
+
+ 	stroke: #FFF;
+ 	stroke-width: 1px;
+ 	transition: fill 0.3s;
+}
+
+/*
+#A1, #A2{
+ 	fill: red;
+}
+
+#A3,#A4 {
+ 	fill: #2000ff;
+}
+
+#A5,#A6{
+ 	fill: #ffe300;
+}
+#A7,#A8{
+ 	fill: #ffe300;
+}
+#A8,#A10{
+ 	fill: #ffe300;
+}
+
+#A1, #A2{
+ 	fill: red;
+}
+
+#A3,#A4 {
+ 	fill: #2000ff;
+}
+
+#A5,#A6{
+ 	fill: #ffe300;
+}
+#A7,#A8{
+ 	fill: #ffe300;
+}
+#A8,#A11{
+ 	fill: #2000ff;
+}*/
+
+
+.map__image path:hover{
+ 	fill: #035866;
+}

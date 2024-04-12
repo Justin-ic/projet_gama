@@ -1,0 +1,2 @@
+L'icone doit être carré sans arrière plan et en png.
+Elle sera redimentionnée à 40x40px.
