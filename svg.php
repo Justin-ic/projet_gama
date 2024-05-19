@@ -24,6 +24,9 @@
 	fill: #fb6304;
 }
 
+/* Linear gradient animation og clip-path i SVG */
+
+
 body{
 	text-align: center;
 	background-color: black;
@@ -46,7 +49,7 @@ body{
 
 
 <div class="containeur">
-	<?php include("style/fontawesome/marqueurs/marqueur3.svg"); ?>
+	<?php include("svg/CI_Sous-prefecture_SVG.svg"); ?>
 </div>
 
 

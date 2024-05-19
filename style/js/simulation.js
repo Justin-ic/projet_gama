@@ -5,10 +5,41 @@
 
 2) Je fais varier la distance de 1 à 50Km pour la même fréquence 3000 MHz
    pour les deux formules et les 3 type de milieux*/
-var dataHATA=[]; var dataCOST=[];
+var dataHATA=[]; var dataCOST=[]; var dataErceig=[];
 function simulation(location,frequence,TypeZone,Hb,Hm,d){
 	var C =0; var Ah=0; 
-	if (TypeZone == "urbaine") {
+
+	var TypeZoneLocal = TypeZone;
+	if (TypeZoneLocal.slice(0,8) == "montagne") {
+		console.log("Type montagne");
+		var Am=0; var Bm=0; var y=0; var d0 = 100; var lamda = 300/frequence;
+		correcteur=80; //  0== 57221186 20==21900584
+		// correcteur=190; //  0== 57221186 20==21900584
+
+		Am = 20*Math.log10((4*Math.PI*d0)/lamda);
+		/* montagneuseA = Montagneuse avec lourde densité d'arbres
+		 montagneuseB = Vallonné avec densité modérée d'arbres
+		 montagneuseC = Terrain plat avec densité d'arbres*/
+		if (TypeZoneLocal == "montagneuseA") {
+			console.log("Type montagneuseA //"+d0);
+			Bm = ((8.2+10.6)/2) + 6*Math.log10(frequence/2000) -10.5*Math.log10(Hm/2); // Terrain type A et B
+			y = 4.6 - (0.0075*Hb) + (12.6/Hb);
+			// y = 3.6 - (0.005*Hb) + (20/Hb);
+		} else if (TypeZoneLocal == "montagneuseB") {
+			Bm = ((8.2+10.6)/2) + 6*Math.log10(frequence/2000) -10.5*Math.log10(Hm/2); // Terrain type A et B
+			y = 4 - (0.0065*Hb) + (17.1/Hb);
+		} else {
+			Bm = ((8.2+10.6)/2) + 6*Math.log10(frequence/2000) -20*Math.log10(Hm/2); // Terrain type C
+			// y = 4.6 - (0.0075*Hb) + (12.6/Hb);
+			y = 3.6 - (0.005*Hb) + (20/Hb);
+		}
+
+		// La distance de Erceig est en mètre et doit être >= 2m // 3 jours pour comprendre ça !!!😊😢
+		// La distance de Erceig est en mètre car son d0=100 qui ne peut pas être en killomètre
+		var Erceig =  Number(Am) + 10*y*Math.log10(d/d0) + Number(Bm); // d>=2m
+		dataErceig[d] = Erceig;
+
+	} else if (TypeZone == "urbaine") {
 		C=0;
 		if (frequence <= 200) {
 			Ah = 8.29*Math.pow(Math.log10(1.54*Hm),2) - 1.1;
@@ -39,21 +70,58 @@ function simulation(location,frequence,TypeZone,Hb,Hm,d){
 
 
 
-function pipline(){
-	for (var i = 400; i <= 4000; i++) {
+	for (var i = 1; i <= 400; i++) {
 	// simulation(location,frequence,TypeZone,Hb,Hm,d)
 	// simulation("Abidjan",i,"urbaine",20,3,0.01); // Simulation 1
-	simulation("Abidjan",i,"rurale",20,3,0.3); // Simulation 2
+	// simulation("Abidjan",i,"rurale",20,3,0.3); // Simulation 2
+	simulation("Abidjan",800,"montagneuseA",20,3,i); // Simulation 3
+		// i=i+2;
+	}
+
+/*
+
+function pipline(){
+	for (var i = 400; i <= 4000; i++) {
+		i=i+4;
+	// simulation(location,frequence,TypeZone,Hb,Hm,d)
+	// simulation("Abidjan",i,"urbaine",20,3,0.01); // Simulation 1
+	// simulation("Abidjan",i,"rurale",20,3,0.3); // Simulation 2
+	simulation("Abidjan",i,"montagneuseA",20,3,0.3); // Simulation 3
 	}
 
 }
+*/
 
-
-for (var i = 4; i <= 39; i++) {
+/*for (var i = 4; i <= 39; i++) {
 	// simulation(location,frequence,TypeZone,Hb,Hm,d)
 	// simulation("Abidjan",i,"urbaine",20,3,0.01); // Simulation 1
 	pipline(i*100,((i+1)*100)-1 ); // Simulation 2
-}
+}*/
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -82,8 +150,10 @@ function AfficheDataHA(affaib,frequence){
 
 var dataStringHATA= "<h1>Smulation HATA</h1>";
 var dataStringCOST= "<h1>Smulation COST</h1>";
-dataHATA.forEach(AfficheDataHATA);
+var dataStringErceig= "<h1>Smulation Erceig</h1>";
+// dataHATA.forEach(AfficheDataHATA);
 // dataCOST.forEach(AfficheDataCOST);
+dataErceig.forEach(AfficheDataErceig);
 
 function AfficheDataHATA(affaib,frequence){
 	// console.log(dataStringHATA);
@@ -97,6 +167,13 @@ function AfficheDataCOST(affaib,frequence){
 	dataStringCOST = dataStringCOST+""+frequence+";"+affaib+"<br>";
 	// console.log(dataStringHATA);
  document.getElementById("simulationCOST").innerHTML = dataStringCOST;
+}
+
+function AfficheDataErceig(affaib,frequence){
+	// console.log(dataStringHATA);
+	dataStringErceig = dataStringErceig+""+frequence+";"+affaib+"<br>";
+	// console.log(dataStringHATA);
+ document.getElementById("simulationCOST").innerHTML = dataStringErceig;
 }
 
 

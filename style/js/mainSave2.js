@@ -11,133 +11,6 @@ https://www.youtube.com/watch?v=ViIR9HzLDdo
 
 function simulation(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 	console.log(" P= "+P+" frequence= "+frequence+" TypeZone= "+TypeZone+" Hb= "+Hb+" Hm= "+Hm);
-
-
-
-	var A; var B; var Cm =0; var Ah=0; var Q_Coro=0; var Ghe; var Gre;
-
-	// Calcul des gains d'antenne
-	Ghe = 20*Math.log10(Hb/200);
-	if (Hm < 3) {Gre = 10*Math.log10(Hb/3);} else {Gre = 20*Math.log10(Hb/3);}
-	var correcteur=0; // Correcteur final
-	// MAPL = -Gain_Ant=17.7  + 𝑵_𝟎=−𝟗𝟔 + F_B_BS=5 + Marge_sh=2.33 + M_pene=15 + M_interf=3 + P_corp_h=3+ Aff
-	// -17,7-96+5+2,33+15+3+3
-	var AMPL = -85.37; // Affaiblissement du bilan de liaison
-
-	var TypeZoneLocal = TypeZone;
-	if (TypeZoneLocal.slice(0,8) == "montagne") {
-		console.log("Type montagne");
-		var Am=0; var Bm=0; var y=0; var d0 = 100; var lamda = 300/frequence;
-		correcteur=-34.3;
-
-		Am = 20*Math.log10((4*Math.PI*d0)/lamda);
-		/* montagneuseA = Montagneuse avec lourde densité d'arbres
-		 montagneuseB = Vallonné avec densité modérée d'arbres
-		 montagneuseC = Terrain plat avec densité d'arbres*/
-		if (TypeZoneLocal == "montagneuseA") {
-			console.log("Type montagneuseA //"+d0);
-			Bm = ((8.2+10.6)/2) + 6*Math.log10(frequence/2000) -10.5*Math.log10(Hm/2); // Terrain type A et B
-			y = 4.6 - (0.0075*Hb) + (12.6/Hb);
-			// y = 3.6 - (0.005*Hb) + (20/Hb);
-		} else if (TypeZoneLocal == "montagneuseB") {
-			Bm = ((8.2+10.6)/2) + 6*Math.log10(frequence/2000) -10.5*Math.log10(Hm/2); // Terrain type A et B
-			y = 4 - (0.0065*Hb) + (17.1/Hb);
-		} else {
-			Bm = ((8.2+10.6)/2) + 6*Math.log10(frequence/2000) -20*Math.log10(Hm/2); // Terrain type C
-			// y = 4.6 - (0.0075*Hb) + (12.6/Hb);
-			y = 3.6 - (0.005*Hb) + (20/Hb);
-		}
-
-		console.log(nivSignal); 
-		var exposant =((Number(P) +Number(Gre)+Number(Ghe) - Number(nivSignal) - Number(AMPL) - Number(correcteur) -Number(Am)-Number(Bm))/Number(10*y) ) ;
-		var Erceig =  Number(Am) + 10*y*Math.log10(2/d0) + Number(Bm);
-		var Rayon = Math.pow(10,exposant);
-
-		console.log("Dans simulation nivSignal="+nivSignal+" Am="+Am+" Bm="+Bm+" y**="+(10*y*Math.log10(3/d0))+" P="+P+" y="+y+" Ghe="+Ghe+" Gre="+Gre+" Op="+( exposant )+ " expoA="+( expoA )+ " Erceig="+Erceig);
-		console.log(" Rayon="+Rayon+" m");
-		// La distance de Erceig est en mètre et doit être > 2m // 3jours pour comprendre ça !!!😊😢
-		// La distance de Erceig est en mètre car son d0=100 qui ne peut pas être en killomètre
-		return Rayon;
-	}
-
-
-	// Calcul da A et B en fonction de la fréquence
-	if (frequence < 1500) {
-		A = 69.55 + 26.161*Math.log10(frequence) - 13.82*Math.log10(Hb);
-		B = 44.9-6.55*Math.log10(Hb);
-	} else if ( 1500 <= frequence <= 2000) {
-		A = 46.3 + 33.9*Math.log10(frequence) - 13.28*Math.log10(Hb);
-		B = 44.9-6.55*Math.log10(Hb);
-	}
-
-
-	// Ah par defaut
-	Ah = (1.1*Math.log10(frequence) - 0.7)*Hm - (1.56*Math.log10(frequence) - 0.8);
-
-	// Calcul de Ah et de la quantitée de correction
-	if(TypeZone == "urbinDense"){ // Plateau
-		if (200 < frequence <= 400) {
-			Ah = 8.29*Math.pow(Math.log10(1.54*Hm), 2) - 1.1;
-		} else if (400 < frequence <= 1500) {
-			Ah = 3.2*Math.pow(Math.log10(11.75*Hm), 2) - 4.97;
-		}
-	} else if(TypeZone == "urbain"){ // Ville d'Abidjan
-		if (400 < frequence <= 1500) {
-			Ah = (1.1*Math.log10(frequence -0.7))*Hm - (1.56*Math.log10(frequence -0.8));
-			Cm = 0; // Un facteur corecteur
-		} else if (1500 < frequence <= 2000) {
-			// Ah prend la valeur par défaut
-			Cm = 3; // Un facteur corecteur
-		}
-	} else if(TypeZone == "subUrbaine"){ // Ville de l'intérieur
-		// J'utilise Urbain + Une quantité de correction
-		if (400 < frequence <= 1500) {
-			Ah = (1.1*Math.log10(frequence -0.7))*Hm - (1.56*Math.log10(frequence -0.8));
-			Cm = 0; // Un facteur corecteur
-		} else if (1500 < frequence <= 2000) {
-			// Ah prend la valeur par défaut
-			Cm = 3; // Un facteur corecteur
-		}
-		Q_Coro = - 2*Math.pow(Math.log10(frequence/28),2) - 5.4;
-	} else if(TypeZone == "rurale"){ // Vilage Campement
-		// J'utilise lz formule générale + Une quantité de correction
-		Q_Coro = - 4.78*Math.pow(Math.log10(frequence),2) - 35.94; // Car pas de désert chez nous
-	}
-
-
-	// Calcul des gains d'antenne
-	Ghe = 20*Math.log10(Hb/200);
-	if (Hm < 3) {Gre = 10*Math.log10(Hb/3);} else {Gre = 20*Math.log10(Hb/3);}
-	var correcteur=117.2; // Correcteur final
-	// MAPL = -Gain_Ant=17.7  + 𝑵_𝟎=−𝟗𝟔 + F_B_BS=5 + Marge_sh=2.33 + M_pene=15 + M_interf=3 + P_corp_h=3+ Aff
-	// -17,7-96+5+2,33+15+3+3
-	var AMPL = -85.37; // Affaiblissement du bilan de liaison
-
-	if (TypeZone == "urbinDense") { 
-		correcteur = 65;
-	} else if (TypeZone == "urbaine") {
-		correcteur = 65;
-	} else if (TypeZone == "subUrbaine") {
-		correcteur = 117.2;
-	} else if (TypeZone == "rurale") {
-		correcteur = 117.2;
-	}
-	console.log(nivSignal);
-	var exposant =((Number(P) - Number(nivSignal) - Number(AMPL) - Number(correcteur) +Number(Gre)+Number(Ghe)-Number(A)-Number(Ah)-Number(Cm)-Number(Q_Coro))/Number(B));
-	var COST =  A + B*Math.log10(0.7) - Cm;
-	var Rayon = Math.pow(10,exposant);
-
-	console.log("Dans simulation nivSignal="+nivSignal+" A="+A+" B="+B+" C="+Cm+" P="+P+" Ghe="+Ghe+" Gre="+Gre+" Op="+( exposant )+ " COST="+COST);
-	console.log(" Rayon="+Rayon*1000+" m");
-	return Rayon*1000;
-}
-
-
-
-
-
-function simulation_xx(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
-	console.log(" P= "+P+" frequence= "+frequence+" TypeZone= "+TypeZone+" Hb= "+Hb+" Hm= "+Hm);
 	var C =0; var Ah=0; 
 	if (TypeZone == "urbaine") {
 		C=0;
@@ -156,7 +29,7 @@ function simulation_xx(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 
 	var A; var B; var Ghe; var Gre;
 /*	A = 69.55 + 26.161*Math.log10(frequence) - 13.82*Math.log10(Hb) - Ah;
-	B = (44.9-6.55)*Math.log10(Hb);
+	B = 44.9-6.55*Math.log10(Hb);
 	var HATA = A + B*Math.log10(d) - C;
 	dataHATA[frequence] = HATA; 
 
@@ -167,14 +40,14 @@ function simulation_xx(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 
 
 	A = 46.3 + 33.9*Math.log10(frequence) - 13.28*Math.log10(Hb) - Ah;
-	B = (44.9-6.55)*Math.log10(Hb);
+	B = 44.9-6.55*Math.log10(Hb);
 	Ghe = 20*Math.log10(Hb/200);
 	if (Hm < 3) {Gre = 10*Math.log10(Hb/3);} else {Gre = 20*Math.log10(Hb/3);}
 	var correcteur=-181;
 	var AMPL=144.03;
 	C = 0;
 	if (TypeZone == "urbaine") {C = 3; correcteur=-160;}
-	console.log(nivSignal);
+console.log(nivSignal);
 	var exposant =((Number(P) - Number(nivSignal) - Number(AMPL) - Number(correcteur) +Number(Gre)+Number(Ghe)-Number(A)-Number(C))/Number(B));
 	var COST =  A + B*Math.log10(0.7) - C;
 	var Rayon = Math.pow(10,exposant);
@@ -210,14 +83,16 @@ function simulation_xx(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 
 // Inite map
 var dataAllMarker = [];
-var foncArgs = [];
-var markerId = 0;
+var fonctionArgument = [];
+var CpAllMarker =0;
+
 
 
 var dataMarkerMoovId = [];
 var dataMarkerMtnId = [];
 var dataMarkerOranId = [];
 var dataMarkerUpToDate = [];
+// var CpAllMarker =0;
 var MarkerMoovId =0;
 var MarkerMtnId =0;
 var MarkerOranId =0;
@@ -326,25 +201,25 @@ la le type de zone
 // location donne le type de zone; Tx_P puissance antenne relais
 // function setMarker(operateur,idMarker,nom,location,Tx_P,frequence,height,tilt,azimuth,Long,Lat){
 // function setMarker(operateur,idMarker,nom,location,height,tilt,azimuth,Long,Lat){
-function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimuth=null,Long,Lat,P,frequence,TypeZone,nivSignal,MarkModif=null){
-	var itmp = 0;
-	/*foncArgs[itmp++]=operateur; foncArgs[itmp++]=idMarker; foncArgs[itmp++]=nom; 
-	foncArgs[itmp++]=location; foncArgs[itmp++]=height; foncArgs[itmp++]=tilt; 
-	foncArgs[itmp++]=azimuth; foncArgs[itmp++]=Long; foncArgs[itmp++]=Lat; foncArgs[itmp++]=P; 
-	foncArgs[itmp++]=frequence; foncArgs[itmp++]=TypeZone; foncArgs[itmp++]=nivSignal;*/
-	foncArgs[0]=operateur; foncArgs[1]=idMarker; foncArgs[2]=nom; 
-	foncArgs[3]=location; foncArgs[4]=height; foncArgs[5]=tilt; 
-	foncArgs[6]=azimuth; foncArgs[7]=Long; foncArgs[8]=Lat; foncArgs[9]=P; 
-	foncArgs[10]=frequence; foncArgs[11]=TypeZone; foncArgs[12]=nivSignal;
-
+function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimuth=null,Long,Lat,P,frequence,TypeZone,nivSignal){
+	var itmp=0;
+	fonctionArgument[itmp++]=operateur;
+	fonctionArgument[itmp++]=idMarker;
+	fonctionArgument[itmp++]=nom;
+	fonctionArgument[itmp++]=location;
+	fonctionArgument[itmp++]=height;
+	fonctionArgument[itmp++]=tilt;
+	fonctionArgument[itmp++]=azimuth;
+	fonctionArgument[itmp++]=Long;
+	fonctionArgument[itmp++]=Lat;
+	fonctionArgument[itmp++]=P;
+	fonctionArgument[itmp++]=frequence;
+	fonctionArgument[itmp++]=TypeZone;
+	fonctionArgument[itmp++]=nivSignal;
 	var heightUser = 3;
 	var Radius = simulation(P,frequence,TypeZone,height,heightUser,nivSignal);
-	if ((Radius/1000) > 200) { 
-		alert("Désolé, la couverture est trop grande ( > 200 Km ). \rRevoyez les paramètres s'il vous plaît !");
-		return 0;
-	}
 	// var Radius = simulation(P,frequence,TypeZone,Hb,Hm);
-	// console.log("okokok");
+	console.log("okokok");
 	console.log(Radius);
 
 	// URL = 'style/fontawesome/marqueurs/marqueur3.png';
@@ -381,12 +256,10 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 	});
 
 	//Ajout du title
-	var LocalMarkerId;
-	if (MarkModif == null) {LocalMarkerId= ++markerId}else{LocalMarkerId=MarkModif;} // Si c'est un nouveau marker, j'augment
 	var markerOptions = {
 		icon: costomIcon,
-		costomId: LocalMarkerId,
-		title: nom.toUpperCase()
+		title: nom.toUpperCase(),
+		dataArg:fonctionArgument
 	}
 	var costomMarqueur = L.marker([Long,Lat], markerOptions).addTo(map);
 	var divPopup="<div><b>Operateur: </b>"+operateur[0].toUpperCase()+operateur.slice(1);
@@ -397,14 +270,7 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 	divPopup += "<br><b>Puissance Ant: </b>"+P+"dBm <br><b>Fréquence: </b>"+frequence;
 	divPopup += "Mhz <br><b>Type Zone: </b>"+TypeZone[0].toUpperCase()+TypeZone.slice(1);
 	divPopup += " <br><b>Rayon estimé: </b>";
-	divPopup += (Radius/1000).toFixed(2)+" Km ";
-
-	divPopup +='<div class="d-flex align-items-center justify-content-center ">';
-	divPopup +='<button class="btn btn-success  p-1 detailBtn mt-1" ';
-	divPopup +='data-bs-toggle="modal"';
-	divPopup +='data-bs-target="#ModifPilone" data-bs-whatever="'+LocalMarkerId+'">Modifier</button>';
-	divPopup +='</div>';
-	divPopup +='</div>';
+	divPopup += Radius.toFixed(2)+"m </div>";
 	costomMarqueur.bindPopup(divPopup);
 	// var costomMarqueur = L.marker([7.483100, -5.716920], costomIcon).addTo(map);
 
@@ -419,29 +285,30 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 	    radius: Radius
 	}).addTo(map).bindPopup("<b>Operateur:"+operateur.toUpperCase()+"</b><br>"+nom);
 
-	
-	var MarIndiv=[];
+/*    if (operateur.toLowerCase() == "moov") {
+    	dataAllMarker["moov"+CpAllMarker++] = costomMarqueur;
+    	dataAllMarker["moov"+CpAllMarker++] = circle;
+    } else if (operateur.toLowerCase() == "mtn") {
+    	dataAllMarker["mtn"+CpAllMarker++] = costomMarqueur;
+    	dataAllMarker["mtn"+CpAllMarker++] = circle;
+    } else {
+    	dataAllMarker["oran"+CpAllMarker++] = costomMarqueur;
+    	dataAllMarker["oran"+CpAllMarker++] = circle;
+    }*/
+
+
+
+	// dataMarkerUpToDate[]
     if (operateur.toLowerCase() == "moov") {
-    	MarIndiv =['moov',MarkerMoovId];
     	dataMarkerMoovId[MarkerMoovId++] = costomMarqueur;
     	dataMarkerMoovId[MarkerMoovId++] = circle;
     } else if (operateur.toLowerCase() == "mtn") {
-    	MarIndiv =['mtn',MarkerMtnId];
     	dataMarkerMtnId[MarkerMtnId++] = costomMarqueur;
     	dataMarkerMtnId[MarkerMtnId++] = circle;
     } else {
-    	MarIndiv =['orange',MarkerOranId];
     	dataMarkerOranId[MarkerOranId++] = costomMarqueur;
     	dataMarkerOranId[MarkerOranId++] = circle;
     }
-
-    if (MarkModif == null) {
-    	dataAllMarker[LocalMarkerId] = [[costomMarqueur],[circle],[foncArgs],MarIndiv];
-    }else{
-    	dataAllMarker[MarkModif] = [[costomMarqueur],[circle],[foncArgs],MarIndiv];
-    }
-    
-	foncArgs =[]; MarIndiv =[];
 }
 
 
@@ -464,19 +331,25 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 // function setMarker(operateur,idMarker,nom,location,Tx_P,frequence,height,tilt,azimuth,Long,Lat){
 // function setMarker(operateur,idMarker,nom,location,height,tilt,azimuth,Long,Lat){
 function setMarkerDefault(operateur,idMarker=1,nom=null,location,height,tilt=null,azimuth=null,Long,Lat,P,frequence,TypeZone){
-	var itmp = 0;
-	/*foncArgs[itmp++]=operateur; foncArgs[itmp++]=idMarker; foncArgs[itmp++]=nom; 
-	foncArgs[itmp++]=location; foncArgs[itmp++]=height; foncArgs[itmp++]=tilt; 
-	foncArgs[itmp++]=azimuth; foncArgs[itmp++]=Long; foncArgs[itmp++]=Lat; foncArgs[itmp++]=P; 
-	foncArgs[itmp++]=frequence; foncArgs[itmp++]=TypeZone; foncArgs[itmp++]=nivSignal;*/
-	foncArgs[0]=operateur; foncArgs[1]=idMarker; foncArgs[2]=nom; 
-	foncArgs[3]=location; foncArgs[4]=height; foncArgs[5]=tilt; 
-	foncArgs[6]=azimuth; foncArgs[7]=Long; foncArgs[8]=Lat; foncArgs[9]=P; 
-	foncArgs[10]=frequence; foncArgs[11]=TypeZone; foncArgs[12]=-100;
+	var itmp=0;
+	fonctionArgument[itmp++]=operateur;
+	fonctionArgument[itmp++]=idMarker;
+	fonctionArgument[itmp++]=nom;
+	fonctionArgument[itmp++]=location;
+	fonctionArgument[itmp++]=height;
+	fonctionArgument[itmp++]=tilt;
+	fonctionArgument[itmp++]=azimuth;
+	fonctionArgument[itmp++]=Long;
+	fonctionArgument[itmp++]=Lat;
+	fonctionArgument[itmp++]=P;
+	fonctionArgument[itmp++]=frequence;
+	fonctionArgument[itmp++]=TypeZone;
+	fonctionArgument[itmp++]=nivSignal;
+
 
 	var Radius = simulation(P,frequence,TypeZone,height,3);
 	// var Radius = simulation(P,frequence,TypeZone,Hb,Hm);
-	// console.log("okokok");
+	console.log("okokok");
 
 	// URL = 'style/fontawesome/marqueurs/marqueur3.png';
 	var marq_opera = operateur.toLowerCase()+idMarker;
@@ -514,8 +387,8 @@ function setMarkerDefault(operateur,idMarker=1,nom=null,location,height,tilt=nul
 	//Ajout du title
 	var markerOptions = {
 		icon: costomIcon,
-		costomId: ++markerId,
-		title: nom.toUpperCase()
+		title: nom.toUpperCase(),
+		dataArg:fonctionArgument
 	}
 	var costomMarqueur = L.marker([Long,Lat], markerOptions).addTo(map);
 /*	
@@ -536,18 +409,7 @@ function setMarkerDefault(operateur,idMarker=1,nom=null,location,height,tilt=nul
 	divPopup += "<br><b>Puissance Ant: </b>"+P+"dBm <br><b>Fréquence: </b>"+frequence;
 	divPopup += "Mhz <br><b>Type Zone: </b>"+TypeZone[0].toUpperCase()+TypeZone.slice(1);
 	divPopup += " <br><b>Rayon estimé: </b>";
-	divPopup += (Radius/1000).toFixed(2)+"  Km ";
-
-	divPopup +='<div class="d-flex align-items-center justify-content-center ">';
-	divPopup +='<button class="btn btn-success  p-1 detailBtn mt-1" ';
-	divPopup +=' data-bs-toggle="modal" ';
-	// divPopup +='onclick="ModifMarkers(\''+markerId+'\')" data-bs-toggle="modal" ';
-	divPopup +='data-bs-target="#ModifPilone" data-bs-whatever="'+markerId+'">Modifier</button>';
-	divPopup +='</div>';
-	divPopup +='</div>';
-	
-					// data-bs-target="#evaluer" data-bs-whatever='<?=json_encode($data)?>'
-				
+	divPopup += Radius.toFixed(2)+"m </div>";
 	
 
 	costomMarqueur.bindPopup(divPopup);
@@ -564,23 +426,40 @@ function setMarkerDefault(operateur,idMarker=1,nom=null,location,height,tilt=nul
 	    radius: Radius
 	}).addTo(map).bindPopup("<b>Operateur:"+operateur.toUpperCase()+"</b><br>"+nom);
 
-	var MarIndiv=[];
+		dataAllMarker[CpAllMarker++] = [costomMarqueur,fonctionArgument];
+
+		dataAllMarker[CpAllMarker++] = circle;
+
+
+/*	if (operateur.toLowerCase() == "moov") {
+		dataAllMarker[CpAllMarker++] = [costomMarqueur,fonctionArgument];
+		dataAllMarker[CpAllMarker++] = circle;
+	} else if (operateur.toLowerCase() == "mtn") {
+		dataAllMarker[CpAllMarker++] = costomMarqueur;
+		dataAllMarker[CpAllMarker++] = circle;
+	} else {
+		dataAllMarker[CpAllMarker++] = costomMarqueur;
+		dataAllMarker[CpAllMarker++] = circle;
+	}
+*/
+
+
 	if (operateur.toLowerCase() == "moov") {
-		MarIndiv =['moov',MarkerMoovId];
 		dataMarkerMoovId[MarkerMoovId++] = costomMarqueur;
+		// updateMarqueur(costomMarqueur);
 		dataMarkerMoovId[MarkerMoovId++] = circle;
 	} else if (operateur.toLowerCase() == "mtn") {
-		MarIndiv =['mtn',MarkerMtnId];
 		dataMarkerMtnId[MarkerMtnId++] = costomMarqueur;
+		// updateMarqueur(costomMarqueur);
 		dataMarkerMtnId[MarkerMtnId++] = circle;
 	} else {
-		MarIndiv =['orange',MarkerOranId];
 		dataMarkerOranId[MarkerOranId++] = costomMarqueur;
+		// updateMarqueur(costomMarqueur);
 		dataMarkerOranId[MarkerOranId++] = circle;
 	}
 
-	dataAllMarker[markerId] = [[costomMarqueur],[circle],[foncArgs],MarIndiv];
-	foncArgs =[]; MarIndiv =[];
+
+
 }
 
 
@@ -636,82 +515,105 @@ data.forEach(appel_f_marqueur);
 function appel_f_marqueur(item, index) {
 /*  console.log (index); 
   console.log (item);*/
-  console.log (item[10]);
+  // console.log (item[10]);
 
   setMarkerDefault(item[0],item[1],item[2],item[3],item[4],item[5],item[6],item[7],item[8],item[9],item[10],item[11]); 
 }
 
+console.log(dataAllMarker);
+
+const img = new Image();
+URL = 'style/fontawesome/marqueurs/moov11.png';
+img.src = URL;
+var newWidth ;
 
 
-const exampleModal = document.getElementById('ModifPilone')
-exampleModal.addEventListener('show.bs.modal', event => {
-  // Button that triggered the modal
-		var button = event.relatedTarget
-  // Extract info from data-bs-* attributes
-		var data = button.getAttribute('data-bs-whatever')
-  // If necessary, you could initiate an AJAX request here
-  // and then do the updating in a callback.
-  //
-  // Update the modal's content.
-	console.log(data);
+	img.style.height="40px";
 
-	var prop=dataAllMarker[data][2][0];
-	console.log(prop[12]);
-	$('[name="M_operateur"]').val(prop[0]);
-	$('[name="M_nomAntenne"]').val(prop[2]);
-	$('[name="M_localisation"]').val(prop[3]);
-	$('[name="M_puissance"]').val(prop[9]);
-	$('[name="M_longitude"]').val(prop[7]);
-	$('[name="M_latitude"]').val(prop[8]);
-	$('[name="M_hauteur"]').val(prop[4]);
-	$('[name="M_frequence"]').val(prop[10]);
-	$('[name="M_typeZone"]').val(prop[11]);
-	$('[name="M_nivSignal"]').val(prop[12]);
+	 newWidth = 40 * (img.width / img.height); 
+	/*Calcule la nouvelle largeur si je donne une nouvelle hauteur de 40px*/
+	// console.log(newWidth);
 
-	$('[name="idMarker"]').val(data); // à utilisé dans la fonction ModifAntenne
 
-	
-})
+// console.log(newWidth);
+
+
+	// Costome marqueur
+	var costomIcon = L.icon({
+	    iconUrl: 'style/fontawesome/marqueurs/moov11.png',
 
 
 
 
-function ModifAntenne() {
-/*
-    Je ne dois pas enlever la ligne du tableau dataAllMarker mais je dois modifier 
-    car les indices sont utilisés dans le bouton modifier du title marker*/
+	    // shadowUrl: 'leaf-shadow.png',
+
+	    iconSize:     [, 40], // size of the icon. Ici, on ne touche pas le width
+	    /*La taille de l'icon par défaut est de 40px */
+
+	    // shadowSize:   [50, 64], // size of the shadow
+
+	    iconAnchor:   [newWidth/2, 40], // point of the icon which will correspond to marker's location
+	    /*iconAnchor: [x, y] La position absolut du marqueur pour corriger sa position.
+		  par défaut, l'icon top=0px et left=0px. 
+		  comme un marqueur a un pointeur en bas au milieu, on fait x=(1/2)* de la largeure et 
+		  y=la hauteur de l'icon */
+
+	    // shadowAnchor: [4, 62],  // the same for the shadow
+
+	    popupAnchor:  [0, -40] // point from which the popup should open relative to the iconAnchor    
+	});
+
+	//Ajout du title
+	var markerOptions = {
+		icon: costomIcon,
+		title: 'Je suis fort'
+	}  
+	var costomMarqueur = L.marker([7.483100, -5.716920], markerOptions).addTo(map);
+	var divPopup="<div><b>Nom:</b>.... <br><b>Localisation:</b>....<br> <b>Hauteur:</b>.... <br><b>Tilt:</b>.... <br><b>Azimut:</b>.... <br><b>Longitude:</b>.... <br><b>Latitude:</b>.... </div>";
+	costomMarqueur.bindPopup(divPopup);
+	// var costomMarqueur = L.marker([7.483100, -5.716920], costomIcon).addTo(map);
 
 
-	// Je nétoie la carte
-	var id = $('[name="idMarker"]').val();
-	map.removeLayer(dataAllMarker[id][0][0]);
-	map.removeLayer(dataAllMarker[id][1][0]);
 
-	// J'enlève l'élément du marker indiv
-	var op=dataAllMarker[id][3][0];
-	var index=Number(dataAllMarker[id][3][1]);
-	
-	if (op == "moov") {
-		dataMarkerMoovId.splice(index, 2); // Enlève le marker et son cercle
-	} else if (op == "mtn") {
-		dataMarkerMtnId.splice(index, 2); // Enlève le marker et son cercle
-	} else {
-		dataMarkerOranId.splice(index, 2); // Enlève le marker et son cercle
+	var circle = L.circle([7.483100, -5.716920], {
+	    color: 'red',
+	    fillColor: '#f03',
+	    fillOpacity: 0.1,
+	    weight:1, //border weight
+	    radius: 20000
+	}).addTo(map).bindPopup("I am a circle.");
+
+
+
+
+// https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
+function updateMarqueur(){
+	for (var i = 0; i < dataMarkerMoovId.length; i++) {
+				console.log(dataMarkerMoovId[i]);
+		// map.removeLayer(dataMarkerMoovId[i]);
+				var sss=dataMarkerMoovId[i];
+		sss.addEventListener("mouseup", (e) => {
+			console.log(e);
+			switch (e.originalEvent.button) {
+			case 0:
+				console.log("Left button clicked.");
+				break;
+			case 1:
+				console.log("Middle button clicked.");
+				break;
+			case 2:
+				console.log("Right button clicked.");
+				break;
+			default:
+				console.log(`Unknown button code: ${e.originalEvent.button}`);
+			}
+		});
 	}
 
-	var operateur = $('[name="M_operateur"]').val();
-	var nomAntenne = $('[name="M_nomAntenne"]').val();
-	var localisation = $('[name="M_localisation"]').val();
-	var puissance = $('[name="M_puissance"]').val();
-	var longitude = $('[name="M_longitude"]').val();
-	var latitude = $('[name="M_latitude"]').val();
-	var hauteur = $('[name="M_hauteur"]').val();
-	var frequence = $('[name="M_frequence"]').val();
-	var typeZone = $('[name="M_typeZone"]').val();
-	var nivSignal = $('[name="M_nivSignal"]').val();
-    setMarker(operateur, 2,nomAntenne, localisation, hauteur, 0,0,longitude, latitude, puissance, frequence, typeZone, nivSignal,id) ;
 }
 
+
+updateMarqueur();
 
 
 
@@ -724,83 +626,67 @@ function togleMarkers(operateur){
 			// console.log(dataMarkerMoovId[0] );
 			for (var i = 0; i < dataMarkerMoovId.length; i++) {
 				// console.log(dataMarkerMoovId[i]);
-				// map.removeLayer(dataMarkerMoovId[i]);
-        		// L'élément existe à cet index
-				if (typeof dataMarkerMoovId[i] !== 'undefined') {map.removeLayer(dataMarkerMoovId[i]);}
+				map.removeLayer(dataMarkerMoovId[i]);
 			}
 			$('#togleMarkMoov').removeClass('active');
 			$('#togleMarkMoov').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
 		} else {
 			for (var i = 0; i < dataMarkerMoovId.length; i++) {
-				// L'élément existe à cet index
-				// dataMarkerMoovId[i].addTo(map);
-				if (typeof dataMarkerMoovId[i] !== 'undefined') {dataMarkerMoovId[i].addTo(map);}
+				dataMarkerMoovId[i].addTo(map);
 			}
 			$('#togleMarkMoov').addClass('active');
 			$('#togleMarkMoov').prop('src', "style/fontawesome/marqueurs/buttonMoov.png");
 		}
 		
-    } else if (operateur.toLowerCase() == "mtn") {
+	} else if (operateur.toLowerCase() == "mtn") {
 	    	const side = document.getElementById("togleMarkMtn");
 	    	if (side.classList.contains('active')) {
 	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
-	    			// map.removeLayer(dataMarkerMtnId[i]);
-	    			// L'élément existe à cet index
-	    			if (typeof dataMarkerMtnId[i] !== 'undefined') {map.removeLayer(dataMarkerMtnId[i]);}
+	    			map.removeLayer(dataMarkerMtnId[i]);
 	    		}
 	    		$('#togleMarkMtn').removeClass('active');
 	    		$('#togleMarkMtn').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
 
 	    	} else {
 	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
-	    			// dataMarkerMtnId[i].addTo(map);
-	    			if (typeof dataMarkerMtnId[i] !== 'undefined') {dataMarkerMtnId[i].addTo(map);}
+	    			dataMarkerMtnId[i].addTo(map);
 	    		}
 	    		$('#togleMarkMtn').addClass('active');
 	    		$('#togleMarkMtn').prop('src', "style/fontawesome/marqueurs/buttonMtn.png");
 
 	    	}
 
-    } else if (operateur.toLowerCase() == "orange"){
+	    } else if (operateur.toLowerCase() == "orange"){
 
 	    	const side = document.getElementById("togleMarkOrange");
 	    	if (side.classList.contains('active')) {
 				// console.log(dataMarkerOranId[0] );
 	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
 	    			// console.log(dataMarkerOranId[i]);
-	    			// map.removeLayer(dataMarkerOranId[i]);
-	    			// L'élément existe à cet index
-	    			if (typeof dataMarkerOranId[i] !== 'undefined') {map.removeLayer(dataMarkerOranId[i]);}
+	    			map.removeLayer(dataMarkerOranId[i]);
 	    		}
 	    		$('#togleMarkOrange').removeClass('active');
 	    		$('#togleMarkOrange').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
 	    	} else {
 	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
-	    			// dataMarkerOranId[i].addTo(map);
-	    			if (typeof dataMarkerOranId[i] !== 'undefined') {dataMarkerOranId[i].addTo(map);}
+	    			dataMarkerOranId[i].addTo(map);
 	    		}
 	    		$('#togleMarkOrange').addClass('active');
 	    		$('#togleMarkOrange').prop('src', "style/fontawesome/marqueurs/buttonOrange.png");
 	    	}
 
-    }else if (operateur.toLowerCase() == "stop"){
+	    }else if (operateur.toLowerCase() == "stop"){
 
 	    	const side = document.getElementById("togleMarkStop");
 	    	if (side.classList.contains('active')) {
 	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
-	    			// map.removeLayer(dataMarkerMtnId[i]);
-	    			// L'élément existe à cet index
-	    			if (typeof dataMarkerMtnId[i] !== 'undefined') {map.removeLayer(dataMarkerMtnId[i]);}
+	    			map.removeLayer(dataMarkerMtnId[i]);
 	    		}
 	    		for (var i = 0; i < dataMarkerMoovId.length; i++) {
-	    			// map.removeLayer(dataMarkerMoovId[i]);
-	    			// L'élément existe à cet index
-	    			if (typeof dataMarkerMoovId[i] !== 'undefined') {map.removeLayer(dataMarkerMoovId[i]);}
+	    			map.removeLayer(dataMarkerMoovId[i]);
 	    		}
 	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
-	    			// map.removeLayer(dataMarkerOranId[i]);
-	    			// L'élément existe à cet index
-	    			if (typeof dataMarkerOranId[i] !== 'undefined') {map.removeLayer(dataMarkerOranId[i]);}
+	    			map.removeLayer(dataMarkerOranId[i]);
 	    		}
 	    		$('#togleMarkStop').removeClass('active');
 	    		$('#togleMarkMtn').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
@@ -813,16 +699,13 @@ function togleMarkers(operateur){
 
 	    	} else {
 	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
-	    			// dataMarkerMtnId[i].addTo(map);
-	    			if (typeof dataMarkerMtnId[i] !== 'undefined') {dataMarkerMtnId[i].addTo(map);}
+	    			dataMarkerMtnId[i].addTo(map);
 	    		}
 	    		for (var i = 0; i < dataMarkerMoovId.length; i++) {
-	    			// dataMarkerMoovId[i].addTo(map);
-	    			if (typeof dataMarkerMoovId[i] !== 'undefined') {dataMarkerMoovId[i].addTo(map);}
+	    			dataMarkerMoovId[i].addTo(map);
 	    		}
 	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
-	    			// dataMarkerOranId[i].addTo(map);
-	    			if (typeof dataMarkerOranId[i] !== 'undefined') {dataMarkerOranId[i].addTo(map);}
+	    			dataMarkerOranId[i].addTo(map);
 	    		}
 	    		$('#togleMarkStop').addClass('active');
 	    		$('#togleMarkMtn').prop('src', "style/fontawesome/marqueurs/buttonMtn.png");
@@ -835,6 +718,268 @@ function togleMarkers(operateur){
 	    	}
 
     }
-}
+}/*Fin function togle*/
 
 
+/*
+
+
+function togleMarkers(operateur){
+	if (operateur.toLowerCase() == "moov") {
+		const side = document.getElementById("togleMarkMoov");
+		
+		if (side.classList.contains('active')) {
+			// console.log(dataMarkerMoovId[0] );
+			for (var i = 0; i < dataMarkerMoovId.length; i++) {
+				// console.log(dataMarkerMoovId[i]);
+				map.removeLayer(dataMarkerMoovId[i]);
+			}
+			$('#togleMarkMoov').removeClass('active');
+			$('#togleMarkMoov').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+		} else {
+			for (var i = 0; i < dataMarkerMoovId.length; i++) {
+				dataMarkerMoovId[i].addTo(map);
+			}
+			$('#togleMarkMoov').addClass('active');
+			$('#togleMarkMoov').prop('src', "style/fontawesome/marqueurs/buttonMoov.png");
+		}
+		
+	} else if (operateur.toLowerCase() == "mtn") {
+	    	const side = document.getElementById("togleMarkMtn");
+	    	if (side.classList.contains('active')) {
+	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
+	    			map.removeLayer(dataMarkerMtnId[i]);
+	    		}
+	    		$('#togleMarkMtn').removeClass('active');
+	    		$('#togleMarkMtn').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+
+	    	} else {
+	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
+	    			dataMarkerMtnId[i].addTo(map);
+	    		}
+	    		$('#togleMarkMtn').addClass('active');
+	    		$('#togleMarkMtn').prop('src', "style/fontawesome/marqueurs/buttonMtn.png");
+
+	    	}
+
+	    } else if (operateur.toLowerCase() == "orange"){
+
+	    	const side = document.getElementById("togleMarkOrange");
+	    	if (side.classList.contains('active')) {
+				// console.log(dataMarkerOranId[0] );
+	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
+	    			// console.log(dataMarkerOranId[i]);
+	    			map.removeLayer(dataMarkerOranId[i]);
+	    		}
+	    		$('#togleMarkOrange').removeClass('active');
+	    		$('#togleMarkOrange').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+	    	} else {
+	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
+	    			dataMarkerOranId[i].addTo(map);
+	    		}
+	    		$('#togleMarkOrange').addClass('active');
+	    		$('#togleMarkOrange').prop('src', "style/fontawesome/marqueurs/buttonOrange.png");
+	    	}
+
+	    }else if (operateur.toLowerCase() == "stop"){
+
+	    	const side = document.getElementById("togleMarkStop");
+	    	if (side.classList.contains('active')) {
+	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
+	    			map.removeLayer(dataMarkerMtnId[i]);
+	    		}
+	    		for (var i = 0; i < dataMarkerMoovId.length; i++) {
+	    			map.removeLayer(dataMarkerMoovId[i]);
+	    		}
+	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
+	    			map.removeLayer(dataMarkerOranId[i]);
+	    		}
+	    		$('#togleMarkStop').removeClass('active');
+	    		$('#togleMarkMtn').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+	    		$('#togleMarkMoov').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+	    		$('#togleMarkOrange').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+	    		$('#togleMarkStop').prop('src',"style/fontawesome/marqueurs/buttonEtteind.png");
+	    		$('#togleMarkMoov').removeClass('active');
+	    		$('#togleMarkMtn').removeClass('active');
+	    		$('#togleMarkOrange').removeClass('active');
+
+	    	} else {
+	    		for (var i = 0; i < dataMarkerMtnId.length; i++) {
+	    			dataMarkerMtnId[i].addTo(map);
+	    		}
+	    		for (var i = 0; i < dataMarkerMoovId.length; i++) {
+	    			dataMarkerMoovId[i].addTo(map);
+	    		}
+	    		for (var i = 0; i < dataMarkerOranId.length; i++) {
+	    			dataMarkerOranId[i].addTo(map);
+	    		}
+	    		$('#togleMarkStop').addClass('active');
+	    		$('#togleMarkMtn').prop('src', "style/fontawesome/marqueurs/buttonMtn.png");
+	    		$('#togleMarkMoov').prop('src', "style/fontawesome/marqueurs/buttonMoov.png");
+	    		$('#togleMarkOrange').prop('src', "style/fontawesome/marqueurs/buttonOrange.png");
+	    		$('#togleMarkStop').prop('src', "style/fontawesome/marqueurs/buttonOk.png");
+	    		$('#togleMarkMoov').addClass('active');
+	    		$('#togleMarkMtn').addClass('active');
+	    		$('#togleMarkOrange').addClass('active');
+	    	}
+
+    }
+} // Fin function togle
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+9.106500, -7.483028
+Kabadougou
+
+
+9.455786, -6.203278
+Boundiali
+
+9.496919, -5.212327
+Ferkessédougou
+
+8.935867, -5.748418
+Poro
+
+8.772829, -5.079119
+Département Niakaramandougou
+
+9.720625, -3.919403
+Bouna
+
+8.737470, -2.901740
+Bounkani
+
+8.323288, -4.050853
+Dabakala
+
+8.139953, -5.100244
+Katiola
+
+7.909860, -3.633766
+Tanda
+
+7.612360, -4.603380
+Bouaké
+
+7.402848, -5.610694
+Sakassou
+
+7.192195, -6.348100
+Daloa
+
+7.068839, -7.084396
+Bangolo
+
+6.935652, -7.856323
+Man
+
+6.187884, -7.535379
+Guiglo
+
+6.127101, -6.897625
+Soubré
+
+6.443879, -6.215707
+Issia
+
+5.091811, -6.809888
+San-Pédro
+
+5.111197, -6.023884
+Sassandra
+
+5.496481, -5.367494
+Lôh-Djiboua
+
+6.805433, -5.201728
+District Autonome du Yamoussoukro
+
+6.641612, -4.468444
+Bongouanou
+
+7.560803, -4.111411
+M''bahiakro
+
+6.221026, -3.665893
+Adzopé
+
+5.630421, -3.652079
+Alépé
+
+5.366320, -3.058465
+Sud-Comoé
+
+
+5.497579, -4.077525
+Ebimpé
+
+5.505239, -4.050978
+Anyama
+
+5.499302, -4.027316
+Anyama Ahouabo
+
+5.485515, -4.031453
+Anyama-Adjamé
+
+5.444173, -4.052500
+PK 18 Agoueto, Abidjan
+
+5.320840, -4.080931
+Yopougon Kouté, Abidjan
+
+5.279615, -3.976680
+Biétry, Abidjan
+
+5.261727, -3.893326
+Port-Bouet, Abidjan
+
+5.324061, -4.004304
+Blockhauss, Abidjan
+
+
+
+
+
+
+
+
+\begin{frame}
+    \frametitle{C) Résultats: contrôle de précision}
+
+    \begin{figure}[h] % Utilisation de l'environnement figure
+        \centering % Centre l'image horizontalement
+        \includegraphics[width=0.8\textwidth]{image/resultat_mesure.png}
+        %\caption{illustration du problème}
+        \label{fig:tableMission} % Étiquette pour faire référence à l'image dans le texte
+    \end{figure} 
+
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+*/

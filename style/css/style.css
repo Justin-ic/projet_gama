@@ -30,7 +30,7 @@ body{
 .div-gauche, .div-droite{
 /*	background-color: red ;*/
 	height: calc(100% - 56px);
-	z-index: 9999;
+	z-index: 100;
 }
 
 .divGlobale{
@@ -58,7 +58,8 @@ body{
 	cursor: pointer;
 
 /*	opacity: 0.5;*/
-	z-index: 9999;
+	z-index: 99;
+/*	z-index: 9999;*/
 }
 
 
@@ -94,6 +95,7 @@ height: 400px;
 
 
 }
+
 
 
 /*.leaflet-container{
