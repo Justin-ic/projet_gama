@@ -793,15 +793,161 @@ Blockhauss, Abidjan
 
 \end{frame}
 
-
-
-
-
-
-
-
-
-
-
-
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+// *********************** Une recherche de une Journée entière de 2h à 18h
+
+//  --------------------TROUVER LE MILIEU DE DEUX POINS --------------------
+function getMidpoint(lat1, lon1, lat2, lon2) {
+    // Calculer les moyennes des latitudes et des longitudes
+    const midLat = (lat1 + lat2) / 2;
+    const midLon = (lon1 + lon2) / 2;
+
+    // Retourner les coordonnées du point médian
+    return { latitude: midLat, longitude: midLon };
+}
+
+// Exemple d'utilisation
+const pointMidle1 = { latitude: -7.556323, longitude: 6.935652 }; // Paris
+const pointMidle2 = { latitude: -7.084396, longitude: 7.768839 }; // New York
+
+const midpoint = getMidpoint(pointMidle1.latitude, pointMidle1.longitude, pointMidle2.latitude, pointMidle2.longitude);
+console.log(`Le point médian est à la latitude ${midpoint.latitude}, longitude ${midpoint.longitude}`);
+
+var PtMidle1 =[pointMidle1.longitude,pointMidle1.latitude];
+var PtMidle2 =[pointMidle2.longitude,pointMidle2.latitude];
+L.marker(PtMidle1).addTo(map);
+L.marker(PtMidle2).addTo(map);
+L.marker([midpoint.longitude,midpoint.latitude]).addTo(map).bindPopup('Milieu');
+let droiteMidle1 = L.polyline([PtMidle1, PtMidle2], {color: 'red'}).addTo(map);
+	var circle = L.circle([midpoint.longitude,midpoint.latitude], {
+	    color: 'red',
+	    fillColor: 'red',
+	    fillOpacity: 0.1,
+	    weight:1,
+	    radius: 5000
+	}).addTo(map);
+
+
+  
+ // --------------------TROUVER L'INTERSECTION ENTRE DEUX POINS --------------------
+
+// Définir les coordonnées des points pour les droites
+let point1 = [7.068839, -7.084396];
+let point2 = [6.443879, -6.215707];
+let point3 = [7.192195, -6.3481];
+let point4 = [6.127101, -6.897625];
+
+	var circle = L.circle([point1[0],point1[1]], {
+	    color: 'red',
+	    fillColor: 'red',
+	    fillOpacity: 0.1,
+	    weight:1,
+	    radius: 500
+	}).addTo(map);
+	var circle = L.circle([point2[0],point2[1]], {
+	    color: 'red',
+	    fillColor: 'red',
+	    fillOpacity: 0.1,
+	    weight:1,
+	    radius: 500
+	}).addTo(map);
+	var circle = L.circle([point3[0],point3[1]], {
+	    color: 'red',
+	    fillColor: 'red',
+	    fillOpacity: 0.1,
+	    weight:1,
+	    radius: 500
+	}).addTo(map);
+	var circle = L.circle([point4[0],point4[1]], {
+	    color: 'red',
+	    fillColor: 'red',
+	    fillOpacity: 0.1,
+	    weight:1,
+	    radius: 500
+	}).addTo(map);
+
+
+// Tracer les droites sur la carte
+let droite1 = L.polyline([point1, point2], {color: 'red'}).addTo(map);
+let droite2 = L.polyline([point3, point4], {color: 'blue'}).addTo(map);
+
+// Calculer les coordonnées de l'intersection
+let intersection = trouverIntersection(point1, point2, point3, point4);
+
+// Tracer le point d'intersection sur la carte
+L.marker(intersection).addTo(map).bindPopup('Intersection');
+
+// Fonction pour trouver l'intersection entre deux droites
+function trouverIntersection(point1, point2, point3, point4) {
+    let x1 = point1[0], y1 = point1[1];
+    let x2 = point2[0], y2 = point2[1];
+    let x3 = point3[0], y3 = point3[1];
+    let x4 = point4[0], y4 = point4[1];
+
+    // Calculer les coordonnées de l'intersection
+    let x = ((x1*y2 - y1*x2) * (x3-x4) - (x1-x2) * (x3*y4 - y3*x4)) / ((x1-x2) * (y3-y4) - (y1-y2) * (x3-x4));
+    let y = ((x1*y2 - y1*x2) * (y3-y4) - (y1-y2) * (x3*y4 - y3*x4)) / ((x1-x2) * (y3-y4) - (y1-y2) * (x3-x4));
+   
+    return [x, y];
+}
+
+
+
+
+
+
+ // --------------------TRACER UNE ELLIPSE ENTRE DEUX POINS --------------------
+
+// Définir les coordonnées des deux points (début et fin)
+let startPoint = L.latLng(6.443879,-6.215707);
+let endPoint = L.latLng(7.068839,-7.084396);
+
+// Calculer le milieu entre les deux points
+let centerPoint = L.latLngBounds(startPoint, endPoint).getCenter();
+
+
+// Calculer la distance entre les deux points (en mètres)
+let distance = startPoint.distanceTo(endPoint);
+
+// Calculer le demi-axe long (50% de la distance) et le demi-axe court (25% de la distance)
+let demiAxeLong = distance / 2;
+let demiAxeCourt = demiAxeLong * 0.1; // Tu peux ajuster ce coefficient selon ton besoin
+
+// Calculer l'angle entre les deux points
+// let angle = Math.atan2(endPoint.lng - startPoint.lng, endPoint.lat - startPoint.lat)*(180/Math.PI);
+let angle = Math.atan2(endPoint.lat - startPoint.lat, endPoint.lng - startPoint.lng)*(180/Math.PI);
+// if (angle<0) {angle +=360;}
+
+// Créer une ellipse
+let ellipse = L.ellipse(centerPoint,[demiAxeLong, demiAxeCourt] , -angle, {
+    color: 'green',
+    fillColor: 'green',
+    fillOpacity: 0.5
+}).addTo(map);
+console.log(centerPoint);
+console.log(angle);
+// Ajouter les marqueurs pour les points de départ et d'arrivée
+L.marker(startPoint).addTo(map);
+L.marker(endPoint).addTo(map);
+
+ // -------------------- FIN DE LA JOURNEE --------------------*/

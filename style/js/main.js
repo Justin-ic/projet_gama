@@ -6,9 +6,6 @@ https://www.youtube.com/watch?v=ViIR9HzLDdo
 */
 
 
-
-
-
 function simulation(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 	console.log(" P= "+P+" frequence= "+frequence+" TypeZone= "+TypeZone+" Hb= "+Hb+" Hm= "+Hm);
 
@@ -22,6 +19,7 @@ function simulation(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 	var correcteur=0; // Correcteur final
 	// MAPL = -Gain_Ant=17.7  + 𝑵_𝟎=−𝟗𝟔 + F_B_BS=5 + Marge_sh=2.33 + M_pene=15 + M_interf=3 + P_corp_h=3+ Aff
 	// -17,7-96+5+2,33+15+3+3
+	// var AMPL = 106.63; // Affaiblissement du bilan de liaison
 	var AMPL = -85.37; // Affaiblissement du bilan de liaison
 
 	var TypeZoneLocal = TypeZone;
@@ -49,14 +47,17 @@ function simulation(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 		}
 
 		console.log(nivSignal); 
+		// var exposant =((Number(P) +Number(Gre)+Number(Ghe) - Number(nivSignal) - Number(AMPL) -Number(Am)-Number(Bm))/Number(10*y) ) ;
 		var exposant =((Number(P) +Number(Gre)+Number(Ghe) - Number(nivSignal) - Number(AMPL) - Number(correcteur) -Number(Am)-Number(Bm))/Number(10*y) ) ;
-		var Erceig =  Number(Am) + 10*y*Math.log10(2/d0) + Number(Bm);
+		var Erceig =  Number(Am) + 10*y*Math.log10(100/d0) + Number(Bm);
 		var Rayon = Math.pow(10,exposant);
 
-		console.log("Dans simulation nivSignal="+nivSignal+" Am="+Am+" Bm="+Bm+" y**="+(10*y*Math.log10(3/d0))+" P="+P+" y="+y+" Ghe="+Ghe+" Gre="+Gre+" Op="+( exposant )+ " expoA="+( expoA )+ " Erceig="+Erceig);
+		console.log("Dans simulation nivSignal="+nivSignal+" Am="+Am+" Bm="+Bm+" y**="+(10*y*Math.log10(3/d0))+" P="+P+" y="+y+" Ghe="+Ghe+" Gre="+Gre+" Op="+( exposant )+ " Erceig="+Erceig);
 		console.log(" Rayon="+Rayon+" m");
-		// La distance de Erceig est en mètre et doit être > 2m // 3jours pour comprendre ça !!!😊😢
-		// La distance de Erceig est en mètre car son d0=100 qui ne peut pas être en killomètre
+		/*La distance de Erceig est en mètre et doit être > 100m pour de meilleurs résultas
+		Sinon à partire d=2m, on a des résultats
+		// 3jours pour comprendre ça !!!😊😢
+		La distance de Erceig est en mètre car son d0=100 qui ne peut pas être en killomètre*/
 		return Rayon;
 	}
 
@@ -112,6 +113,7 @@ function simulation(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 	// MAPL = -Gain_Ant=17.7  + 𝑵_𝟎=−𝟗𝟔 + F_B_BS=5 + Marge_sh=2.33 + M_pene=15 + M_interf=3 + P_corp_h=3+ Aff
 	// -17,7-96+5+2,33+15+3+3
 	var AMPL = -85.37; // Affaiblissement du bilan de liaison
+	// var AMPL = 85.37; // Affaiblissement du bilan de liaison
 
 	if (TypeZone == "urbinDense") { 
 		correcteur = 65;
@@ -123,6 +125,7 @@ function simulation(P,frequence,TypeZone,Hb,Hm,nivSignal=-100){
 		correcteur = 117.2;
 	}
 	console.log(nivSignal);
+	// var exposant =((Number(P) - Number(nivSignal) - Number(AMPL) +70 +Number(Gre)+Number(Ghe)-Number(A)-Number(Ah)-Number(Cm)-Number(Q_Coro))/Number(B));
 	var exposant =((Number(P) - Number(nivSignal) - Number(AMPL) - Number(correcteur) +Number(Gre)+Number(Ghe)-Number(A)-Number(Ah)-Number(Cm)-Number(Q_Coro))/Number(B));
 	var COST =  A + B*Math.log10(0.7) - Cm;
 	var Rayon = Math.pow(10,exposant);
@@ -225,6 +228,7 @@ var MarkerOranId =0;
 if ($(window).width() < 990) {var zoom=6;} else {var zoom=7;}
 var map = L.map('map').setView([7.483100, -5.716920], zoom);
 
+// Ajouter une couche de tuiles OpenStreetMap
 var mainMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -339,9 +343,19 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 
 	var heightUser = 3;
 	var Radius = simulation(P,frequence,TypeZone,height,heightUser,nivSignal);
-	if ((Radius/1000) > 200) { 
+	if (frequence < 400 || frequence > 2600) { 
+		alert("Désolé, la frequence doit appartenir à [400 MHz, 2600 MHz].");
+		return 0;
+	}else if ((Radius/1000) > 200) {
 		alert("Désolé, la couverture est trop grande ( > 200 Km ). \rRevoyez les paramètres s'il vous plaît !");
 		return 0;
+	}else if (TypeZone.indexOf("montagne") !== -1) {
+		if (Radius < 2) {
+			alert("Désolé! Le rayon est trop petit (< 2m); non autorisé par le modèle.");
+			return 0;
+		} else if (Radius >= 2 && Radius < 100) {
+			alert("Attention! d < 100. \rCette configuration ne donne pas de bon résultats.");
+		}
 	}
 	// var Radius = simulation(P,frequence,TypeZone,Hb,Hm);
 	// console.log("okokok");
@@ -629,7 +643,47 @@ data = Array(
 	["moov",1,"Port-Bouet, Abidjan","Port-Bouet, Abidjan",30,29,30, 5.261727, -3.893326 ,P,2600,"urbaine"],
 	["orange",1,"Blockhauss, Abidjan","Blockhauss, Abidjan",20,29,30, 5.324061, -4.004304 ,P,2000,"urbaine"]
   );
-
+/*data = Array(
+	["mtn",1,"Folon","Folon",20,29,30,9.842626, -7.468468,P,1800,"rurale"],
+	["moov",1,"Boundiali","Boundiali",20,29,30,9.455786, -6.203278,P,900,"rurale"],
+	["mtn",1,"Ferkessédougou","Ferkessédougou",20,29,30,9.496919, -5.212327,P,900,"rurale"],
+	["orange",1,"Poro","Poro",20,29,30, 8.935867, -5.748418 ,P,1800,"rurale"],
+	["orange",1,"Worodougou","Worodougou",20,29,30, 8.364933, -7.095350 ,P,1800,"rurale"],
+	["orange",1,"Kabadougou","Kabadougou",20,29,30, 9.184507, -7.079070 ,P,1800,"rurale"],
+	["mtn",1,"Niakaramandougou","Département Niakaramandougou",20,29,30, 8.772829, -5.079119 ,P,900,"rurale"],
+	["moov",1,"Bouna","Bouna",20,29,30, 9.720625, -3.919403 ,P,900,"rurale"],
+	["mtn",1,"Bounkani","Bounkani",20,29,30, 8.737470, -2.901740 ,P,900,"rurale"],
+	["orange",1,"Dabakala","Dabakala",20,29,30, 8.323288, -4.050853 ,P,1800,"rurale"],
+	// ["mtn",1,"Katiola","Katiola",20,29,30, 8.139953, -5.100244 ,P,800,"subUrbaine"],
+	["moov",1,"Tanda","Tanda",20,29,30, 7.909860, -3.633766 ,P,800,"rurale"],
+	["mtn",1,"Bouaké","Bouaké",20,29,30, 7.612360, -4.603380 ,P,1800,"rurale"],
+	["orange",1,"Sakassou","Sakassou",20,29,30, 7.402848, -5.610694 ,P,800,"rurale"],
+	["mtn",1,"Daloa","Daloa",20,29,30, 7.192195, -6.348100 ,P,800,"rurale"],
+	["orange",1,"Bangolo","Bangolo",30,29,30, 7.068839, -7.084396 ,P,800,"rurale"],
+	["moov",1,"Man","Man",20,29,30, 6.935652, -7.856323 ,P,800,"rurale"],
+	["mtn",1,"Guiglo","Guiglo",20,29,30, 6.187884, -7.535379 ,P,800,"rurale"],
+	["orange",1,"Soubré","Soubré",30,29,30, 6.127101, -6.897625 ,P,800,"rurale"],
+	["mtn",1,"Issia","Issia",20,29,30, 6.443879, -6.215707 ,P,1800,"rurale"],
+	["mtn",1,"San-Pédro","San-Pédro",20,29,30, 5.091811, -6.809888 ,P,800,"rurale"],
+	["moov",1,"Sassandra","Sassandra",20,29,30, 5.111197, -6.023884 ,P,800,"rurale"],
+	["orange",1,"Lôh-Djiboua","Lôh-Djiboua",20,29,30, 5.496481, -5.367494 ,P,800,"rurale"],
+	["mtn",1,"District Autonome du Yamoussoukro","District Autonome du Yamoussoukro",20,29,30, 6.805433, -5.201728 ,P,900,"rurale"],
+	["mtn",1,"Bongouanou","Bongouanou",20,29,30, 6.641612, -4.468444 ,P,1200,"rurale"],
+	["moov",1,"M'bahiakro","M'bahiakro",20,29,30, 7.560803, -4.111411 ,P,2000,"rurale"],
+	["mtn",1,"Adzopé","Adzopé",20,29,30, 6.221026, -3.665893 ,P,1200,"rurale"],
+	["orange",1,"Alépé","Alépé",20,29,30, 5.630421, -3.652079 ,P,2000,"rurale"],
+	["mtn",1,"Sud-Comoé","Sud-Comoé",20,29,30, 5.366320, -3.058465 ,P,1200,"rurale"],
+	["moov",1,"Ebimpé","Ebimpé",20,29,30, 5.497579, -4.077525 ,P,1200,"subUrbaine"],
+	["mtn",1,"Anyama","Anyama",20,29,30, 5.505239, -4.050978 ,P,2000,"urbaine"],
+	["orange",1,"Anyama Ahouabo","Anyama Ahouabo",20,29,30, 5.499302, -4.027316 ,P,2000,"urbaine"],
+	["mtn",1,"Anyama-Adjamé","Anyama-Adjamé",20,29,30, 5.485515, -4.031453 ,P,1500,"urbaine"],
+	["moov",1,"PK 18 Agoueto, Abidjan","PK 18 Agoueto, Abidjan",20,29,30, 5.444173, -4.052500 ,P,1500,"urbaine"],
+	["orange",1,"Yopougon Kouté, Abidjan","Yopougon Kouté, Abidjan",20,29,30, 5.320840, -4.080931 ,P,1500,"urbaine"],
+	["mtn",1,"Biétry, Abidjan","Biétry, Abidjan",20,29,30, 5.279615, -3.976680 ,P,2000,"urbaine"],
+	["moov",1,"Port-Bouet, Abidjan","Port-Bouet, Abidjan",30,29,30, 5.261727, -3.893326 ,P,2600,"urbaine"],
+	["orange",1,"Blockhauss, Abidjan","Blockhauss, Abidjan",20,29,30, 5.324061, -4.004304 ,P,2000,"urbaine"]
+  );
+*/
 
 // console.log (data);
 data.forEach(appel_f_marqueur);
@@ -835,6 +889,8 @@ function togleMarkers(operateur){
 	    	}
 
     }
-}
+} // Fin function togleMarkers
+
+
 
 

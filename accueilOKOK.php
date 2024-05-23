@@ -42,7 +42,15 @@ foreach($scandir as $fichier){
 	<link rel="stylesheet" type="text/css" href="style/fontawesome/css/all.css"> 
 	<link rel="stylesheet" type="text/css" href="style/css/style2.css"> 
 
-
+<script type="text/javascript">
+	function validateForm(){
+		alert("Add clicvvvvvvvvvvvv");
+	if (form=="Add") {
+		return false;
+	} else {}
+		return false;
+}
+</script>
 
 <!-- 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="crossorigin=""/>
@@ -55,6 +63,8 @@ foreach($scandir as $fichier){
      <!-- Cette version gère les demis-cercles -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.1.0/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.1.0/dist/leaflet.js"></script>
+    <script src="style/js/leaflet.curve.js"></script>
+    <script src="style/js/leaflet.ellipse.js"></script>
     <script src="style/js/Semicircle.js"></script>
 
 </head>
@@ -156,7 +166,7 @@ foreach($scandir as $fichier){
   <div class="modal-dialog modal-dialog-centered ">
     <div class="modal-content col-10">
 
-    <form action="#" method="GET" id="myForm" class="">
+    <form action="#" method="GET" id="myForm" class="" onsubmit="return validateForm()">
         <div class="modal-header">
             <h1 class="modal-title fs-7 text-center" id="NPInscrit">Caractéristiques du pylône</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -222,7 +232,7 @@ foreach($scandir as $fichier){
 
         		<div class="col-6 form-group mb-3 mt-3">
         			<label for="frequence"><b>Fréquence(Mhz) : <span class="text-danger">*</span></b></label>
-        			<input class="form-control" name="frequence" type="number" step="0.001" min="0" id="frequence" aria-describedby="" placeholder="Fréquence" required>
+        			<input class="form-control" name="frequence" type="number" step="0.001" min="400" max="2600" id="frequence" aria-describedby="" placeholder="Fréquence" required>
         		</div>
         	</div>
 
@@ -237,10 +247,10 @@ foreach($scandir as $fichier){
         					<option value="urbinDense">Urbaine dense</option>
         					<option value="urbaine">Urbaine</option>
         					<option value="subUrbaine">Périurbaine</option>
-        					<option value="rurale">Rurale</option>
-        					<option value="montagneuseA">Type A: Montagneuse avec lourde densité d'arbres</option>
-        					<option value="montagneuseB">Type B: Vallonné avec densité modérée d'arbres</option>
-        					<option value="montagneuseC">Type C: Terrain plat avec densité d'arbres</option>
+        					<!-- <option value="rurale">Rurale</option> -->
+        					<option value="montagneuseA">Rurale (Montagneuse avec lourde densité d'arbres)</option>
+        					<option value="montagneuseB">Rurale (Vallonné avec densité modérée d'arbres)</option>
+        					<option value="rurale">Rurale (Terrain plat avec faible densité d'arbres)</option>
         				</select>
         			</div>
         		</div>
@@ -255,9 +265,9 @@ foreach($scandir as $fichier){
         </div>
         <div class="modal-footer">
         	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fremer</button>
-        	<button onclick="addAntenne()" type="button" class="btn btn-primary" data-bs-dismiss="modal">Valider</button>
+        	<button  type="button" onclick="addAntenne()" class="btn btn-primary" data-bs-dismiss="modal">Valider</button>
         </div>
-    </form><!-- fin form -->
+    </form><!-- fin form "  -->
     </div>
   </div>
 </div>
@@ -334,7 +344,7 @@ foreach($scandir as $fichier){
 
         		<div class="col-6 form-group mb-3 mt-3">
         			<label for="frequence"><b>Fréquence(Mhz) : <span class="text-danger">*</span></b></label>
-        			<input class="form-control" name="M_frequence" type="number" step="0.001" min="0" id="frequence" aria-describedby="" placeholder="Fréquence" required>
+        			<input class="form-control" name="M_frequence" type="number" step="400.001" min="400" max="2600" id="frequence" aria-describedby="" placeholder="Fréquence" required>
         		</div>
         	</div>
 
@@ -349,10 +359,10 @@ foreach($scandir as $fichier){
         					<option value="urbinDense">Urbaine dense</option>
         					<option value="urbaine">Urbaine</option>
         					<option value="subUrbaine">Périurbaine</option>
-        					<option value="rurale">Rurale</option>
-        					<option value="montagneuseA">Montagneuse avec lourde densité d'arbres</option>
-        					<option value="montagneuseB">Vallonné avec densité modérée d'arbres</option>
-        					<option value="montagneuseC">Terrain plat avec densité d'arbres</option>
+        					<!-- <option value="rurale">Rurale</option> -->
+        					<option value="montagneuseA">Rurale (Montagneuse avec lourde densité d'arbres)</option>
+        					<option value="montagneuseB">Rurale (Vallonné avec densité modérée d'arbres)</option>
+        					<option value="rurale">Rurale (Terrain plat avec faible densité d'arbres)</option>
         				</select>
         			</div>
         		</div>
@@ -378,11 +388,6 @@ foreach($scandir as $fichier){
 
 
 	<script type="text/javascript">
-		/*function togleNavOK() {
-			document.getElementById("mySidebar").style.width = "0px";
-			document.getElementById("main").style.marginLeft = "0px";
-		}*/
-
 
 function addAntenne() {
 	 var operateur = document.getElementsByName("operateur");
@@ -502,6 +507,8 @@ $(window).on('resize', function() {
    }
        
 });
+
+
 
 
 
