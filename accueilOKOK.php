@@ -262,6 +262,14 @@ foreach($scandir as $fichier){
 
         	</div>
 
+        	<div class="row">
+        		<div class="col-12 form-group mb-3 mt-3">
+        			<label for="azimut"><b>Azimut(°) : <span class="text-danger"></span></b></label>
+        			<input class="form-control" name="azimut" type="number" step="0.01" min="0" max="360" id="azimut" aria-describedby="" placeholder="Azimut en degré">
+        		</div>
+        	</div>
+
+
         </div>
         <div class="modal-footer">
         	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fremer</button>
@@ -374,6 +382,13 @@ foreach($scandir as $fichier){
 
         	</div>
 
+        	<div class="row">
+        		<div class="col-12 form-group mb-3 mt-3">
+        			<label for="azimut"><b>Azimut(°) : <span class="text-danger"></span></b></label>
+        			<input class="form-control" name="M_azimut" type="number" step="0.01" min="0" max="360" id="azimut" aria-describedby="" placeholder="Azimut en degré">
+        		</div>
+        	</div>
+
         </div>
         <input  type="hidden" name="idMarker" type="number"  required>
         <div class="modal-footer">
@@ -400,8 +415,15 @@ function addAntenne() {
 	 var frequence = document.getElementsByName("frequence");
 	 var typeZone = document.getElementsByName("typeZone");
 	 var nivSignal = document.getElementsByName("nivSignal");
+	 var azimut = $('[name="azimut"]').val();
+	// console.log("xxxxxxxxxxxxX"+azimut+"X");
+	if (azimut=="") {
+		setMarker(operateur[0].value,2,nomAntenne[0].value,localisation[0].value,hauteur[0].value,0,-1,longitude[0].value,latitude[0].value,puissance[0].value,frequence[0].value,typeZone[0].value,nivSignal[0].value);
+	} else {
+		setMarker(operateur[0].value,2,nomAntenne[0].value,localisation[0].value,hauteur[0].value,0,azimut,longitude[0].value,latitude[0].value,puissance[0].value,frequence[0].value,typeZone[0].value,nivSignal[0].value);
+	}
 	 // console.log("operateur="+operateur[0].value+" nomAntenne="+nomAntenne[0].value+" localisation="+localisation[0].value+" puissance="+puissance[0].value+" longitude="+longitude[0].value+" latitude="+latitude[0].value+" hauteur="+hauteur[0].value+" frequence="+frequence[0].value+" typeZone"+typeZone[0].value);
-     setMarker(operateur[0].value,2,nomAntenne[0].value,localisation[0].value,hauteur[0].value,0,0,longitude[0].value,latitude[0].value,puissance[0].value,frequence[0].value,typeZone[0].value,nivSignal[0].value);
+     
 }
 
 

@@ -263,8 +263,8 @@ L.semiCircle([5.396574, -3.969319], {
 
 L.semiCircle([5.396574, -3.969319], {
     radius: 90000,
-	startAngle: 240,
-	stopAngle: 360,
+	startAngle: -60,
+	stopAngle: 20,
 	color: 'red',
 	fillColor: '#f03',
 	fillOpacity: 0.1,
@@ -327,9 +327,7 @@ la le type de zone
 
 
 // simulation(location,frequence,TypeZone,Hb,Hm,d)
-// location donne le type de zone; Tx_P puissance antenne relais
-// function setMarker(operateur,idMarker,nom,location,Tx_P,frequence,height,tilt,azimuth,Long,Lat){
-// function setMarker(operateur,idMarker,nom,location,height,tilt,azimuth,Long,Lat){
+
 function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimuth=null,Long,Lat,P,frequence,TypeZone,nivSignal,MarkModif=null){
 	var itmp = 0;
 	/*foncArgs[itmp++]=operateur; foncArgs[itmp++]=idMarker; foncArgs[itmp++]=nom; 
@@ -425,13 +423,29 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 
 	var color = "";
 	if (operateur.toLowerCase() == "moov") {color="#065cab"}else if (operateur.toLowerCase() == "mtn") {color="#fbcb04"}else{color="#fb6304"}
-	var circle = L.circle([Long,Lat], {
-	    color: color,
-	    fillColor: color,
-	    fillOpacity: 0.1,
-	    weight:1,
-	    radius: Radius
-	}).addTo(map).bindPopup("<b>Operateur:"+operateur.toUpperCase()+"</b><br>"+nom);
+	
+	if (azimuth == -1) {
+		var circle = L.circle([Long,Lat], {
+			color: color,
+			fillColor: color,
+			fillOpacity: 0.1,
+			weight:1,
+			radius: Radius
+		}).addTo(map).bindPopup("<b>Operateur:"+operateur.toUpperCase()+"</b><br>"+nom);
+	} else {
+		console.log(Number(Number(azimuth)-60));
+		console.log(Number(Number(azimuth)+60));
+		var circle = L.semiCircle([Long,Lat], {
+			radius: Radius,
+			startAngle: Number(Number(azimuth)-60),
+			stopAngle: Number(Number(azimuth)+60),
+			color: color,
+			fillColor: color,
+			fillOpacity: 0.1,
+			weight:1 
+		}).addTo(map);
+	}
+	
 
 	
 	var MarIndiv=[];
@@ -467,7 +481,26 @@ function setMarker(operateur,idMarker=1,nom=null,location,height,tilt=null,azimu
 
 
 
+/*
 
+Pylône:
+location
+Long
+Lat
+TypeZone
+
+
+
+antenne: 
+idPylone
+operateur
+height
+tilt
+azimuth
+Puissance
+frequence
+
+*/
 
 
 
@@ -750,7 +783,7 @@ function ModifAntenne() {
 	} else if (op == "mtn") {
 		dataMarkerMtnId.splice(index, 2); // Enlève le marker et son cercle
 	} else {
-		dataMarkerOranId.splice(index, 2); // Enlève le marker et son cercle
+		dataMarkerOranId.splice(index, 2); // Enlève le marker et son cercle xxxxxxxxxxxxXX
 	}
 
 	var operateur = $('[name="M_operateur"]').val();
@@ -763,7 +796,13 @@ function ModifAntenne() {
 	var frequence = $('[name="M_frequence"]').val();
 	var typeZone = $('[name="M_typeZone"]').val();
 	var nivSignal = $('[name="M_nivSignal"]').val();
-    setMarker(operateur, 2,nomAntenne, localisation, hauteur, 0,0,longitude, latitude, puissance, frequence, typeZone, nivSignal,id) ;
+	var azimut = $('[name="M_azimut"]').val();
+	// console.log("xxxxxxxxxxxxX"+azimut+"X");
+	if (azimut=="") {
+		setMarker(operateur, 2,nomAntenne, localisation, hauteur, 0,-1,longitude, latitude, puissance, frequence, typeZone, nivSignal,id) ;
+	} else {
+		setMarker(operateur, 2,nomAntenne, localisation, hauteur, 0,azimut,longitude, latitude, puissance, frequence, typeZone, nivSignal,id) ;
+	}
 }
 
 
@@ -893,4 +932,48 @@ function togleMarkers(operateur){
 
 
 
+/*
+Zone urbaine fortement dense 
+Plateau:
+5.319277, -4.016457
+Rue Alphonse Daudet, Abidjan
 
+
+5.330312, -4.021607
+Bd Angoulvant, Abidjan
+
+
+
+
+5.342793, -4.026414
+Marché adjamé Abidjan
+
+
+5.480830, -4.074567
+Stade Olympique Alassane Ouattara d’Ebimpé, FWJG+856
+
+
+
+
+
+
+Zone urbaine dense 
+Treichville:
+5.305969, -4.014262
+Treichville Centre, Abidjan
+
+5.306373, -4.007704
+BS. PLANETE SERVICE, 20 BP 991 Abidjan 20 Treichville (Immeuble Nana Yamousso Avenue 13, Rue 38, Abidjan
+
+
+Macory 
+5.299221, -3.986451
+AZALAÏ HOTEL ABIDJAN, 8227+5HV, 11BP1024 Abidjan 11, Rue d'Agboville, Abidjan
+
+
+
+
+
+
+
+*/
